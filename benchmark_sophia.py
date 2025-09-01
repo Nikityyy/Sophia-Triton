@@ -57,8 +57,8 @@ def check_correctness(params_ref, params_triton, optimizer_ref, optimizer_triton
             params_ref[i].grad = grads_ref[i]
             params_triton[i].grad = grads_triton[i]
 
-        optimizer_ref.update_hessian()
-        optimizer_ref.step(bs=BS)
+        optimizer_ref.schedule_hessian_update()
+        optimizer_ref.step()
 
         optimizer_triton.schedule_hessian_update()
         optimizer_triton.update_hessian()
@@ -94,8 +94,8 @@ def run_performance_step(optimizer, params, name):
         if "AdamW" in name:
             optimizer.step()
         elif "Reference" in name:
-            optimizer.update_hessian()
-            optimizer.step(bs=BS)
+            optimizer.schedule_hessian_update()
+            optimizer.step()
         elif "Triton" in name:
             optimizer.schedule_hessian_update()
             optimizer.update_hessian()
@@ -114,8 +114,8 @@ def run_performance_step(optimizer, params, name):
         if "AdamW" in name:
             optimizer.step()
         elif "Reference" in name:
-            optimizer.update_hessian()
-            optimizer.step(bs=BS)
+            optimizer.schedule_hessian_update()
+            optimizer.step()
         elif "Triton" in name:
             optimizer.schedule_hessian_update()
             optimizer.update_hessian()
@@ -186,7 +186,7 @@ def run_benchmark_for_dtype(dtype, device):
     total_params = get_total_params(params_ref)
     print(f"Model parameters: {NUM_PARAMS} tensors of size {DIMS}, Total: {total_params / 1e9:.2f}B elements")
 
-    optimizer_ref = sophia_ref.SophiaG(params_ref, lr=LR, rho=RHO)
+    optimizer_ref = sophia_ref.SophiaG(params_ref, lr=LR, rho=RHO, eps=1e-15, bs=BS)
     optimizer_triton = sophia_triton.SophiaG(params_triton, lr=LR, rho=RHO, eps=1e-15, bs=BS)
     
     optimizer_ref.update_hessian()
